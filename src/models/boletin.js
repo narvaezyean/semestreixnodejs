@@ -64,4 +64,17 @@ class Boletin {
     setPublishedAt(published_at){
         this.published_at = published_at;
     }
+
+    getValues(){
+        return {
+            id: this.id,
+            title: this.title,
+            description: this.description,
+            created_at: this.created_at,
+            update_at: this.update_at,
+            published_at: this.published_at
+        }
+    }
 }
+
+module.exports = Boletin
