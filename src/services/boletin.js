@@ -1,64 +1,63 @@
-const createConnection = require ("./../libs/mysql")
-const Boletin = require("./../models/boletin")
+const createConnection = require ("./../libs/mysql");
+const Boletin = require("./../models/boletin");
+const { models} = require("../libs/sequelize");
+require("./../database/models/boletin");
 
 class BoletinService{
     connection = null;
 
     async getConnection(){
-        this.connection = await createConnection()
+        this.connection = await createConnection();
     }
 
     async getAll(){
-        await this.getConnection()
-        const sql = "SELECT * FROM boletines";
-        const [rows] = await this.connection.query(sql)
+        const boletines = await models.Boletin.findAll();
 
-        if (rows.length == 0) {
-            return []
-        }
-
-        return rows.map((row) => {
+        return boletines.map((boletin) => {
             return new Boletin(
-                row.id,
-                row.title,
-                row.description,
-                row.created_at,
-                row.update_at,
-                row.published_at
+                boletin.id,
+                boletin.title,
+                boletin.description,
+                boletin.created_at,
+                boletin.update_at,
+                boletin.published_at
             )
-        })
+        });
     }
 
     async getById(id){
-        await this.getConnection();
-        const sql = "SELECT * FROM boletines WHERE id = ?"
-        const values = [id]
-        const [rows] = await this.connection.query(sql, values)
+        const boletines = await models.Boletin.findByPk(id);
 
-        if (rows.length == 0){
-            return null
+        if(!boletines){
+            return null;
         }
 
-        const boletin = new Boletin(
-            rows[0].id,
-            rows[0].title,
-            rows[0].description,
-            rows[0].created_at,
-            rows[0].update_at,
-            rows[0].published_at
+        return new Boletin(
+            boletines[0].id,
+            boletines[0].title,
+            boletines[0].description,
+            boletines[0].created_at,
+            boletines[0].update_at,
+            boletines[0].published_at
         );
-        
-        return boletin;
     }
 
     async create(title, description, published_at){
         await this.getConnection();
-        const sql = "INSERT INTO boletines (title, description, published_at) VALUES (?,?,?)";
-        const values = [title, description, published_at];
-
-        const [result] = await this.connection.query(sql, values);
-
-        const boletin = await this.getById(result.insertId)
+        const createBoletin = await models.Boletin.create({
+            title: title,
+            description: description,
+            published_at: published_at
+        });
+        
+        const boletin = new Boletin(
+            createBoletin.id,
+            createBoletin.title,
+            createBoletin.description,
+            createBoletin.created_at,
+            createBoletin.update_at,
+            createBoletin.published_at
+        );
 
         return boletin;
     }
