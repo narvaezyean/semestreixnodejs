@@ -1,7 +1,8 @@
 const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
-const morgan = require("morgan")
+const morgan = require("morgan");
+const sequilize = require("./libs/sequelize");
 
 require ("dotenv").config()
 
@@ -21,8 +22,9 @@ app.use("/api/boletines", require("./routes/boletin"))
 
 const port = process.env.app_port
 
-app.listen(port,()=>{
+app.listen(port, async()=>{
     console.log(`Server is running on port ${port}`)
+    await sequilize.sync()
 })
 
 
