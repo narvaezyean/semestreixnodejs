@@ -18,6 +18,7 @@ app.get("/",(request, response)=>{
 })
 
 app.use("/api/boletines", require("./routes/boletin"))
+app.use("/api/cwe", require("./routes/cwe"));
 
 const port = process.env.app_port
 
