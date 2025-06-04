@@ -23,7 +23,7 @@ class CweService {
         row.cwe_code,
         row.name,
         row.created_at,
-        row.update_at
+        row.updated_at
       );
     });
   }
@@ -43,7 +43,7 @@ class CweService {
       rows[0].cwe_code,
       rows[0].name,
       rows[0].created_at,
-      rows[0].update_at
+      rows[0].updated_at
     );
 
     return cwe;
@@ -61,10 +61,11 @@ class CweService {
     return cwe;
   }
 
-  async update(id, cwe_code, name) {
+  async update(id, cwe_code, name, updated_at) {
     await this.getConnection();
-    const sql = "UPDATE cwe SET cwe_code = ?, name = ? WHERE id = ?";
-    const values = [cwe_code, name, id];
+    const sql =
+      "UPDATE cwe SET cwe_code = ?, name = ?, updated_at = ? WHERE id = ?";
+    const values = [cwe_code, name, updated_at, id];
 
     await this.connection.query(sql, values);
 

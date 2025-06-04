@@ -1,50 +1,83 @@
-const { Router } = require('express');
+const { Router } = require("express");
 const BoletinService = require("../services/boletin");
-const boletinValidator = require("../middleware/getById")
+const serviceCWE = require("../services/cwe");
+const boletinValidator = require("../middleware/getById");
 
 const router = Router();
 const serviceBoletin = new BoletinService();
+const serviceCwe = new serviceCWE();
 
 router.get("/", async (request, response) => {
-    const boletines = await serviceBoletin.getAll();
+  const boletines = await serviceBoletin.getAll();
 
-    const boletinResponse = boletines.map((bol) => {
-        return bol.getValues();
-    })
+  const boletinResponse = boletines.map((bol) => {
+    return bol.getValues();
+  });
 
-    response.json(boletinResponse);
+  response.json(boletinResponse);
 });
 
-router.get("/:id", boletinValidator,async(request, response) => {
-    const id = request.params.id;
-    const boletin = await serviceBoletin.getById(id);
+router.get("/:id", boletinValidator, async (request, response) => {
+  const id = request.params.id;
+  const boletin = await serviceBoletin.getById(id);
 
-    response.json(boletin.getValues());
+  response.json(boletin.getValues());
 });
 
-router.post("/", async(request, response) => {
-    const { title, description, published_at } = request.body;
+router.post("/", async (request, response) => {
+  const { title, description, published_at, cwe_id } = request.body;
 
-    const boletin = await serviceBoletin.create(title, description, published_at);
+  if (cwe_id !== null) {
+    const existingCwe = await serviceCwe.getById(cwe_id);
 
-    response.json(boletin.getValues());
-})
+    if (!existingCwe) {
+      return response.status(400).json({
+        error: `La CWE con ID ${cwe_id} no existe. No se puede crear el boletin. Por favor, asigne una CWE válida.`,
+      });
+    }
+  }
 
-router.put("/:id", boletinValidator, async(request, response) => {
-    const id = request.params.id;
-    const { title, description, published_at } = request.body;
+  const boletin = await serviceBoletin.create(
+    title,
+    description,
+    published_at,
+    cwe_id
+  );
 
-    const updateBoletin = await serviceBoletin.update(id, title, description, published_at)
+  response.json(boletin.getValues());
+});
 
-    response.json(updateBoletin.getValues());
-})
+router.put("/:id", boletinValidator, async (request, response) => {
+  const id = request.params.id;
+  const { title, description, published_at, cwe_id } = request.body;
 
-router.delete("/:id", boletinValidator, async(request, response) => {
-    const id = request.params.id;
+  if (cwe_id !== null) {
+    const existingCwe = await serviceCwe.getById(cwe_id);
 
-    const deleteBoletin = await serviceBoletin.delete(id)
+    if (!existingCwe) {
+      return response.status(400).json({
+        error: `La CWE con ID ${cwe_id} no existe. No se puede actualizar el boletin. Por favor, asigne una CWE válida.`,
+      });
+    }
+  }
 
-    response.json(deleteBoletin.getValues());
-})
+  const updateBoletin = await serviceBoletin.update(
+    id,
+    title,
+    description,
+    published_at,
+    cwe_id
+  );
 
-module.exports = router
+  response.json(updateBoletin.getValues());
+});
+
+router.delete("/:id", boletinValidator, async (request, response) => {
+  const id = request.params.id;
+
+  const deleteBoletin = await serviceBoletin.delete(id);
+
+  response.json(deleteBoletin.getValues());
+});
+
+module.exports = router;
